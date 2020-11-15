@@ -167,7 +167,7 @@ class NodeItem(AbstractNodeItem):
         label_rect = QtCore.QRectF(rect.left() + (radius / 2),
                                    rect.top() + (radius / 2),
                                    self._width - (radius / 1.25),
-                                   28)
+                                   NODE_ICON_SIZE + 4)  # 28)
         path = QtGui.QPainterPath()
         path.addRoundedRect(label_rect, radius / 1.5, radius / 1.5)
         painter.setBrush(QtGui.QColor(0, 0, 0, 50))

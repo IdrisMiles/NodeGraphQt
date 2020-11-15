@@ -261,7 +261,7 @@ class NodeObject(object):
             object: property data.
         """
         if self.graph and name == 'selected':
-            self.model.set_property(self.view.selected)
+            self.model.set_property('selected', self.view.selected)
 
         return self.model.get_property(name)
 

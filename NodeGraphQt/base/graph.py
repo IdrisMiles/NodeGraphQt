@@ -31,6 +31,10 @@ class NodeGraph(QtCore.QObject):
     nodes_deleted = QtCore.Signal(list)
     #: signal emits the node object when selected in the node graph.
     node_selected = QtCore.Signal(NodeObject)
+    #: signal emits the node object when deselected in the node graph.
+    node_deselected = QtCore.Signal(NodeObject)
+    #: signal emits when node selection has changed in the node graph.
+    node_selection_changed = QtCore.Signal()
     #: signal triggered when a node is double clicked and emits the node.
     node_double_clicked = QtCore.Signal(NodeObject)
     #: signal for when a node has been connected emits (source port, target port).
@@ -70,6 +74,8 @@ class NodeGraph(QtCore.QObject):
 
         # pass through signals.
         self._viewer.node_selected.connect(self._on_node_selected)
+        self._viewer.node_deselected.connect(self._on_node_deselected)
+        self._viewer.node_selection_changed.connect(self.node_selection_changed)
         self._viewer.data_dropped.connect(self._on_node_data_dropped)
 
     def _toggle_tab_search(self):
@@ -116,6 +122,17 @@ class NodeGraph(QtCore.QObject):
         """
         node = self.get_node_by_id(node_id)
         self.node_selected.emit(node)
+
+    def _on_node_deselected(self, node_id):
+        """
+        called when a node in the viewer is deselected on left click.
+        (emits the node object when the node is clicked)
+
+        Args:
+            node_id (str): node id emitted by the viewer.
+        """
+        node = self.get_node_by_id(node_id)
+        self.node_deselected.emit(node)
 
     def _on_node_data_dropped(self, data, pos):
         """

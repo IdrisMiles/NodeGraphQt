@@ -35,6 +35,8 @@ class NodeViewer(QtWidgets.QGraphicsView):
 
     # pass through signals
     node_selected = QtCore.Signal(str)
+    node_deselected = QtCore.Signal(str)
+    node_selection_changed = QtCore.Signal()
     node_double_clicked = QtCore.Signal(str)
     data_dropped = QtCore.Signal(QtCore.QMimeData, QtCore.QPoint)
 
@@ -80,11 +82,11 @@ class NodeViewer(QtWidgets.QGraphicsView):
 
         # workaround fix for shortcuts from the non-native menu actions
         # don't seem to trigger so we create a hidden menu bar.
-        menu_bar = QtWidgets.QMenuBar(self)
-        menu_bar.setNativeMenuBar(False)
-        # shortcuts don't work with "setVisibility(False)".
-        menu_bar.resize(0, 0)
-        menu_bar.addMenu(self._context_menu)
+        # menu_bar = QtWidgets.QMenuBar(self)
+        # menu_bar.setNativeMenuBar(False)
+        # # shortcuts don't work with "setVisibility(False)".
+        # menu_bar.resize(0, 0)
+        # menu_bar.addMenu(self._context_menu)
 
         self.acyclic = True
         self.LMB_state = False
@@ -156,6 +158,23 @@ class NodeViewer(QtWidgets.QGraphicsView):
     def contextMenuEvent(self, event):
         self.RMB_state = False
         if self._context_menu.isEnabled():
+            map_pos = self.mapToScene(event.pos())
+            items = self._items_near(map_pos, None, 20, 20)
+            nodes = [i for i in items if isinstance(i, AbstractNodeItem)]
+            if not nodes:
+                return super(NodeViewer, self).contextMenuEvent(event)
+
+            for node in nodes:
+                if node in self._prev_selection:
+                    break
+            else:
+                # RMB over a node not in current selection
+                for node in self._prev_selection:
+                    node.selected = False
+            # select new nodes for context menu
+            for node in nodes:
+                node.selected = True
+
             self._context_menu.exec_(event.globalPos())
         else:
             return super(NodeViewer, self).contextMenuEvent(event)
@@ -248,6 +267,17 @@ class NodeViewer(QtWidgets.QGraphicsView):
 
         # reset recorded positions.
         self._node_positions = {}
+
+        # find newly selected nodes
+        if self._prev_selection != self.selected_nodes():
+            for node in self.selected_nodes():
+                if node not in self._prev_selection:
+                    self.node_selected.emit(node.id)
+            for node in self._prev_selection:
+                if node not in self.selected_nodes():
+                    self.node_deselected.emit(node.id)
+            self.node_selection_changed.emit()
+
 
         super(NodeViewer, self).mouseReleaseEvent(event)
 
@@ -401,8 +431,8 @@ class NodeViewer(QtWidgets.QGraphicsView):
                 self._node_positions[n] = n.xy_pos
 
             # emit selected node id with LMB.
-            if event.button() == QtCore.Qt.LeftButton:
-                self.node_selected.emit(node.id)
+            # if event.button() == QtCore.Qt.LeftButton:
+            #     self.node_selected.emit(node.id)
 
             if not isinstance(node, BackdropNodeItem):
                 return
