@@ -1,0 +1,1 @@
+NodeGraphQt/pkg_info.py

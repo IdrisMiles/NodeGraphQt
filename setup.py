@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import setuptools
 
-import NodeGraphQt.pkg_info as pkg_info
+import pkg_info
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
